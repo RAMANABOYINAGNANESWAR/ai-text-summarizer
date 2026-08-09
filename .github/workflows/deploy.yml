@@ -15,6 +15,6 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd ~/ai-text-summarizer/ai-text-summarizer/ai-text-summarizer
+            cd ~/ai-text-summarizer
             git pull origin main
             sudo systemctl restart summarizer
