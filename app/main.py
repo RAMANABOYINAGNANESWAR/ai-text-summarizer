@@ -8,6 +8,9 @@ from app.schemas import SummarizeRequest, SummarizeResponse, ErrorResponse
 from app.services.summarizer import summarize_text
 from app.services.extractor import extract_text_from_upload
 
+from app.schemas import ClassifyRequest, ClassifyResponse
+from app.services.classifier import classify_text
+
 app = FastAPI(
     title="AI Text Summarizer",
     description="A small FastAPI service that summarizes text using an LLM.",
@@ -70,3 +73,16 @@ def summarize_file(file: UploadFile = File(...), max_words: int = Form(default=6
         original_length_words=len(text.split()),
         summary_length_words=len(summary.split()),
     )
+    
+@app.post(
+    "/classify",
+    response_model=ClassifyResponse,
+    responses={502: {"model": ErrorResponse}},
+)
+def classify(payload: ClassifyRequest):
+    try:
+        result = classify_text(text=payload.text)
+    except RuntimeError as e:
+        raise HTTPException(status_code=502, detail=str(e))
+
+    return ClassifyResponse(**result)

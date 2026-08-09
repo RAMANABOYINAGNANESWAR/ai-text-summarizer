@@ -25,3 +25,19 @@ class SummarizeResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     detail: str
+
+class ClassifyRequest(BaseModel):
+    text: str = Field(
+        ...,
+        min_length=1,
+        max_length=20000,
+        description="The customer message or text to classify",
+        examples=["My payment was deducted but my order was cancelled."],
+    )
+
+
+class ClassifyResponse(BaseModel):
+    intent: str
+    priority: str
+    sentiment: str
+    requires_human: bool

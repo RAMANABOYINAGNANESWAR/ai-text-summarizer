@@ -87,10 +87,11 @@
   <h1>AI Text Summarizer</h1>
   <p class="sub">Paste Text or upload a .txt / .pdf file to get a summary.</p>
 
-  <div class="tabs">
+<div class="tabs">
     <div class="tab active" id="tabText" onclick="switchTab('text')">Paste text</div>
     <div class="tab" id="tabFile" onclick="switchTab('file')">Upload file</div>
-  </div>
+    <div class="tab" id="tabClassify" onclick="switchTab('classify')">Classify message</div>
+</div>
 
   <div class="panel">
     <div id="textPanel">
@@ -105,12 +106,17 @@
       </div>
     </div>
 
+    <div id="classifyPanel" class="hidden">
+      <textarea id="classifyInput" placeholder="Paste a customer message to classify, e.g. 'My payment was deducted but my order was cancelled.'"></textarea>
+    </div>
+
     <div class="row">
       <label class="small" for="maxWords">Target length (words):</label>
       <input type="number" id="maxWords" value="60" min="10" max="500">
     </div>
 
     <button class="primary" id="submitBtn" onclick="doSummarize()">Summarize</button>
+    <button class="primary hidden" id="classifyBtn" onclick="doClassify()">Classify</button>
     <div class="error hidden" id="errorBox"></div>
   </div>
 
@@ -118,6 +124,10 @@
     <h2>Summary</h2>
     <div class="summaryBox" id="summaryText"></div>
     <div class="meta" id="metaText"></div>
+  </div>
+  <div class="result hidden" id="classifyResultBox">
+    <h2>Classification</h2>
+    <div class="summaryBox" id="classifyText"></div>
   </div>
 </main>
 
@@ -128,8 +138,15 @@ function switchTab(target) {
   mode = target;
   document.getElementById('tabText').classList.toggle('active', target === 'text');
   document.getElementById('tabFile').classList.toggle('active', target === 'file');
+  document.getElementById('tabClassify').classList.toggle('active', target === 'classify');
   document.getElementById('textPanel').classList.toggle('hidden', target !== 'text');
   document.getElementById('filePanel').classList.toggle('hidden', target !== 'file');
+  document.getElementById('classifyPanel').classList.toggle('hidden', target !== 'classify');
+  document.getElementById('submitBtn').classList.toggle('hidden', target === 'classify');
+  document.getElementById('classifyBtn').classList.toggle('hidden', target !== 'classify');
+  document.getElementById('resultBox').classList.add('hidden');
+  document.getElementById('classifyResultBox').classList.add('hidden');
+  document.getElementById('errorBox').classList.add('hidden');
 }
 
 const dropzone = document.getElementById('dropzone');
@@ -203,6 +220,44 @@ async function doSummarize() {
   } finally {
     btn.disabled = false;
     btn.textContent = "Summarize";
+  }
+}
+
+async function doClassify() {
+  const btn = document.getElementById('classifyBtn');
+  const errorBox = document.getElementById('errorBox');
+  const resultBox = document.getElementById('classifyResultBox');
+  const text = document.getElementById('classifyInput').value.trim();
+
+  errorBox.classList.add('hidden');
+  resultBox.classList.add('hidden');
+
+  if (!text) { showError("Please paste a message first."); return; }
+
+  btn.disabled = true;
+  btn.textContent = "Classifying...";
+
+  try {
+    const response = await fetch("/classify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: text })
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      showError(typeof data.detail === "string" ? data.detail : "Something went wrong.");
+      return;
+    }
+
+    document.getElementById('classifyText').textContent =
+      `Intent: ${data.intent}\nPriority: ${data.priority}\nSentiment: ${data.sentiment}\nRequires human: ${data.requires_human}`;
+    resultBox.classList.remove('hidden');
+  } catch (err) {
+    showError("Could not reach the server. Is it still running?");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Classify";
   }
 }
 

@@ -35,7 +35,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Users\gnani\Downloads\ai-text-summarizer\ai-text-summarizer\.venv"
+VIRTUAL_ENV="C:\Users\gnani\Downloads\ai-text-summarizer\.venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

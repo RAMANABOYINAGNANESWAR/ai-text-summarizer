@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=C:\Users\gnani\Downloads\ai-text-summarizer\ai-text-summarizer\.venv
+set VIRTUAL_ENV=C:\Users\gnani\Downloads\ai-text-summarizer\.venv
 
 if not defined PROMPT set PROMPT=$P$G
 
