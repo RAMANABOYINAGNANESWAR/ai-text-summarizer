@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from typing import Optional
+
 from sqlmodel import SQLModel, Field, create_engine, Session
 
 DATABASE_URL = "sqlite:///./history.db"
@@ -7,7 +9,7 @@ engine = create_engine(DATABASE_URL, echo=False)
 
 
 class RequestRecord(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     request_type: str          # "summarize" or "classify"
     input_text: str
     output_json: str           # store the result as a JSON string
