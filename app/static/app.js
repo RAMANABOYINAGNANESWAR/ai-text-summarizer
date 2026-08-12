@@ -139,28 +139,50 @@ function showError(msg) {
   errorBox.classList.remove('hidden');
 }
 
-async function loadHistory() {
+let historyOffset = 0;
+const HISTORY_PAGE_SIZE = 10;
+
+async function loadHistory(reset = true) {
   const listEl = document.getElementById('historyList');
   const countEl = document.getElementById('historyCount');
-  listEl.innerHTML = '<div class="historyEmpty">Loading...</div>';
+
+  if (reset) {
+    historyOffset = 0;
+    listEl.innerHTML = '<div class="historyEmpty">Loading...</div>';
+  }
 
   try {
-    const response = await fetch('/history?limit=20');
+    const response = await fetch(`/history?limit=${HISTORY_PAGE_SIZE}&offset=${historyOffset}`);
     const records = await response.json();
 
-    if (!records.length) {
+    if (reset) listEl.innerHTML = '';
+
+    document.getElementById('loadMoreBtn')?.remove();
+
+    if (!records.length && historyOffset === 0) {
       listEl.innerHTML = '<div class="historyEmpty">No requests yet. Try Summarize or Classify.</div>';
       countEl.textContent = '';
       return;
     }
 
-    countEl.textContent = `${records.length} recent request${records.length > 1 ? 's' : ''}`;
-    listEl.innerHTML = records.map(renderHistoryCard).join('');
+    listEl.insertAdjacentHTML('beforeend', records.map(renderHistoryCard).join(''));
+    historyOffset += records.length;
+    countEl.textContent = `Showing ${historyOffset} request${historyOffset > 1 ? 's' : ''}`;
+
+    if (records.length === HISTORY_PAGE_SIZE) {
+      const btn = document.createElement('button');
+      btn.id = 'loadMoreBtn';
+      btn.className = 'refreshBtn';
+      btn.style.width = '100%';
+      btn.style.marginTop = '8px';
+      btn.textContent = 'Load more';
+      btn.onclick = () => loadHistory(false);
+      listEl.parentElement.appendChild(btn);
+    }
   } catch (err) {
     listEl.innerHTML = '<div class="historyEmpty">Could not load history.</div>';
   }
 }
-
 function renderHistoryCard(record) {
   const time = new Date(record.created_at).toLocaleString();
   const isClassify = record.request_type === 'classify';

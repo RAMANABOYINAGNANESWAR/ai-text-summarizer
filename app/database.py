@@ -31,8 +31,13 @@ def save_record(request_type: str, input_text: str, output_json: str):
         session.commit()
 
 
-def get_history(limit: int = 20):
+def get_history(limit: int = 20, offset: int = 0):
     with Session(engine) as session:
         from sqlmodel import select
-        statement = select(RequestRecord).order_by(RequestRecord.id.desc()).limit(limit)
+        statement = (
+            select(RequestRecord)
+            .order_by(RequestRecord.id.desc())
+            .offset(offset)
+            .limit(limit)
+        )
         return session.exec(statement).all()

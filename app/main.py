@@ -77,11 +77,13 @@ def summarize_file(file: UploadFile = File(...), max_words: int = Form(default=6
     except RuntimeError as e:
         raise HTTPException(status_code=502, detail=str(e))
 
-    return SummarizeResponse(
+    response = SummarizeResponse(
         summary=summary,
         original_length_words=len(text.split()),
         summary_length_words=len(summary.split()),
     )
+    save_record("summarize", text, response.model_dump_json())
+    return response
     
 @app.post(
     "/classify",
@@ -99,8 +101,8 @@ def classify(payload: ClassifyRequest):
     return response
 
 @app.get("/history")
-def history(limit: int = 20):
-    records = get_history(limit=limit)
+def history(limit: int = 20, offset: int = 0):
+    records = get_history(limit=limit, offset=offset)
     return [
         {
             "id": r.id,
